@@ -1,0 +1,145 @@
+---
+- name: Sécurisation initiale VPS
+  hosts: vps
+  become: yes
+
+  vars:
+    user_password: "{{ vault_wail_user_password }}"
+
+  tasks:
+    - name: Création utilisateur wail
+      user:
+        name: wail
+        shell: /bin/bash
+        groups: sudo
+        append: yes
+        create_home: yes
+        password: "{{ user_password | password_hash('sha512') }}"
+
+    - name: Configuration répertoire SSH
+      file:
+        path: /home/wail/.ssh
+        state: directory
+        owner: wail
+        group: wail
+        mode: '0700'
+
+    - name: Copie clé publique SSH
+      copy:
+        src: ~/.ssh/id_rsa.pub
+        dest: /home/wail/.ssh/authorized_keys
+        owner: wail
+        group: wail
+        mode: '0600'
+
+    - name: Configuration sudo sans mot de passe
+      lineinfile:
+        path: /etc/sudoers.d/wail
+        line: 'wail ALL=(ALL) NOPASSWD:ALL'
+        create: yes
+        mode: '0440'
+        validate: 'visudo -cf %s'
+
+    - name: Mise à jour système
+      apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+
+    - name: Hardening SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      loop:
+        - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+        - { regexp: '^#?PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+        - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+        - { regexp: '^#?AllowUsers', line: 'AllowUsers wail' }
+      notify: Redémarrage SSH
+
+    - name: Installation UFW
+      apt:
+        name: ufw
+        state: present
+
+    - name: Configuration firewall
+      ufw:
+        state: enabled
+        policy: "{{ item.policy }}"
+        direction: "{{ item.direction }}"
+      loop:
+        - { policy: 'deny', direction: 'incoming' }
+        - { policy: 'allow', direction: 'outgoing' }
+
+    - name: Autorisation ports
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop:
+        - '22'
+        - '80'
+        - '443'
+
+    - name: Installation Fail2ban
+      apt:
+        name: fail2ban
+        state: present
+
+    - name: Configuration Fail2ban
+      copy:
+        dest: /etc/fail2ban/jail.local
+        content: |
+          [DEFAULT]
+          bantime = 3600
+          findtime = 600
+          maxretry = 3
+          ignoreip = 127.0.0.1/8
+
+          [sshd]
+          enabled = true
+          port = 22
+          logpath = /var/log/auth.log
+          maxretry = 3
+          banaction = ufw
+      notify: Redémarrage Fail2ban
+
+    - name: Activation Fail2ban
+      service:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+    - name: Installation mises à jour automatiques
+      apt:
+        name:
+          - unattended-upgrades
+          - apt-listchanges
+        state: present
+
+    - name: Installation outils
+      apt:
+        name:
+          - curl
+          - wget
+          - git
+          - vim
+          - htop
+          - net-tools
+          - rsync
+        state: present
+
+  handlers:
+    - name: Redémarrage SSH
+      service:
+        name: ssh
+        state: restarted
+
+    - name: Redémarrage Fail2ban
+      service:
+        name: fail2ban
+        state: restarted

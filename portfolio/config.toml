@@ -1,0 +1,140 @@
+baseURL = "https://wail-sys.com/"
+languageCode = "fr-fr"
+title = "Wail F. - Portfolio"
+theme = "PaperMod"
+
+# Activer emojis
+enableEmoji = true
+
+# Pagination
+[pagination]
+  pagerSize = 10
+
+# Générer le sitemap automatiquement
+enableRobotsTXT = true
+
+# Formats de sortie
+[outputs]
+  home = ["HTML", "RSS", "JSON"]  # JSON pour la recherche
+
+# Configuration du thème PaperMod
+[params]
+  env = "production"
+  description = "Portfolio et documentation de mon infrastructure DevOps self-hosted"
+  author = "Wail"
+
+  # Sections principales (pour afficher les posts sur la page d'accueil)
+  mainSections = ["posts"]
+
+  # Mode par défaut (light, dark, auto)
+  defaultTheme = "auto"
+
+  # Afficher le bouton de changement de thème
+  ShowShareButtons = false
+  ShowReadingTime = true
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowRssButtonInSectionTermList = true
+
+  # Table des matières
+  ShowToc = true
+  TocOpen = false
+
+  # Assets (pour Mermaid et autres)
+  [params.assets]
+    disableFingerprinting = true
+
+  # Page d'accueil avec profil en haut et liste de posts
+  [params.homeInfoParams]
+    Title = "Wail F."
+    Content = """
+Infrastructure as Code • Automation • Linux • Cloud Infrastructure • Security • Monitoring
+    """
+
+  # Liens sociaux
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/wail-sys"
+
+  [[params.socialIcons]]
+    name = "linkedin"
+    url = "https://linkedin.com/in/wailfennikh"
+
+  [[params.socialIcons]]
+    name = "email"
+    url = "mailto:wail@wail-sys.com"
+
+  [[params.socialIcons]]
+    name = "rss"
+    url = "/index.xml"
+
+  # Boutons désactivés en mode profile (empêchent l'affichage des posts)
+  # [[params.profileMode.buttons]]
+  #   name = "À propos"
+  #   url = "/about"
+
+# Menu principal
+[menu]
+  [[menu.main]]
+    identifier = "home"
+    name = "Accueil"
+    url = "/"
+    weight = 1
+
+  [[menu.main]]
+    identifier = "infrastructure"
+    name = "Infrastructure"
+    url = "/posts/infrastructure/"
+    weight = 2
+
+  [[menu.main]]
+    identifier = "about"
+    name = "À propos"
+    url = "/about/"
+    weight = 3
+
+  [[menu.main]]
+    identifier = "monitoring"
+    name = "Monitoring"
+    url = "https://status.wail-sys.com"
+    weight = 4
+
+# Taxonomies (tags, catégories)
+[taxonomies]
+  category = "categories"
+  tag = "tags"
+  series = "series"
+
+# Configuration Markdown
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+  [markup.highlight]
+    anchorLineNos = false
+    codeFences = true
+    guessSyntax = false
+    lineNos = true
+    lineNumbersInTable = true
+    noClasses = false
+    style = "monokai"
+    tabWidth = 4
+
+  [markup.tableOfContents]
+    endLevel = 3
+    ordered = false
+    startLevel = 2
+
+# Minification
+[minify]
+  disableXML = true
+  minifyOutput = true
+
+# Privacy (RGPD)
+[privacy]
+  [privacy.twitter]
+    enableDNT = true
+  [privacy.youtube]
+    privacyEnhanced = true

@@ -1,0 +1,2 @@
+do_token = "dop_v1_YOUR_TOKEN_HERE"
+ssh_public_key_path = "~/.ssh/id_rsa.pub"

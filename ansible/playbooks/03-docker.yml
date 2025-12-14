@@ -1,0 +1,55 @@
+---
+- name: Installation Docker
+  hosts: vps
+  become: yes
+
+  tasks:
+    - name: Installation dépendances
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+
+    - name: Ajout clé GPG Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Ajout repository Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Installation Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ajout utilisateur au groupe docker
+      user:
+        name: wail
+        groups: docker
+        append: yes
+
+    - name: Activation Docker au démarrage
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Création répertoire Docker
+      file:
+        path: /opt/docker
+        state: directory
+        owner: wail
+        group: docker
+        mode: '0755'

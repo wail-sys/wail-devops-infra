@@ -1,0 +1,79 @@
+# Configuration Nginx pour le portfolio principal
+# Domaine : wail-sys.com
+
+server {
+    listen 80;
+    server_name {{ domain }} www.{{ domain }};
+
+    # Logs spécifiques au portfolio
+    access_log /var/log/nginx/portfolio_access.log;
+    error_log /var/log/nginx/portfolio_error.log;
+
+    # Let's Encrypt validation (ACME challenge)
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Racine du site Hugo (fichiers statiques)
+    root /var/www/portfolio;
+    index index.html;
+
+    # Servir les fichiers statiques
+    location / {
+        try_files $uri $uri/ =404;
+    }
+
+    # Optimisation cache pour assets statiques
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Sécurité headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+
+    # Désactiver l'accès aux fichiers cachés (sauf .well-known)
+    location ~ /\.(?!well-known) {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}
+
+# Redirection www vers non-www (optionnel)
+# server {
+#     listen 80;
+#     server_name www.{{ domain }};
+#     return 301 http://{{ domain }}$request_uri;
+# }
+
+# Configuration SSL (à activer après obtention certificats Let's Encrypt)
+# server {
+#     listen 443 ssl http2;
+#     server_name {{ domain }};
+#
+#     ssl_certificate /etc/letsencrypt/live/{{ domain }}/fullchain.pem;
+#     ssl_certificate_key /etc/letsencrypt/live/{{ domain }}/privkey.pem;
+#
+#     # SSL configuration
+#     ssl_protocols TLSv1.2 TLSv1.3;
+#     ssl_ciphers HIGH:!aNULL:!MD5;
+#     ssl_prefer_server_ciphers on;
+#
+#     root /var/www/portfolio;
+#     index index.html;
+#
+#     location / {
+#         try_files $uri $uri/ =404;
+#     }
+# }
+#
+# # Redirection HTTP vers HTTPS
+# server {
+#     listen 80;
+#     server_name {{ domain }};
+#     return 301 https://$server_name$request_uri;
+# }

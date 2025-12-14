@@ -1,0 +1,33 @@
+---
+- name: Déploiement site Hugo
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    hugo_source: "{{ playbook_dir }}/../../portfolio"
+    hugo_public: "{{ hugo_source }}/public"
+    remote_user: "{{ lookup('env', 'ANSIBLE_REMOTE_USER') | default('wail', true) }}"
+    remote_host: "{{ hostvars[groups['vps'][0]]['ansible_host'] }}"
+    remote_path: "/opt/docker/portfolio/html/"
+
+  tasks:
+    - name: Build site Hugo
+      command: hugo --minify
+      args:
+        chdir: "{{ hugo_source }}"
+
+    - name: Déploiement via rsync
+      synchronize:
+        src: "{{ hugo_public }}/"
+        dest: "{{ remote_user }}@{{ remote_host }}:{{ remote_path }}"
+        delete: yes
+        rsync_opts:
+          - "--chmod=Du=rwx,Dg=rx,Do=rx,Fu=rw,Fg=r,Fo=r"
+
+    - name: Vérification accessibilité site
+      uri:
+        url: https://wail-sys.com
+        method: GET
+        status_code: 200
+      retries: 3
+      delay: 2

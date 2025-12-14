@@ -1,0 +1,17 @@
+---
+tailscale_authkey: "{{ vault_tailscale_authkey }}"
+grafana_admin_password: "{{ vault_grafana_admin_password }}"
+wail_user_password: "{{ vault_wail_user_password }}"
+letsencrypt_email: "{{ vault_letsencrypt_email }}"
+
+domain: "wail-sys.com"
+monitoring_subdomain: "status.wail-sys.com"
+timezone: "Europe/Paris"
+
+db_hostname: "{{ vault_db_hostname }}"
+db_port: "{{ vault_db_port | default('25060') }}"
+db_database: "uptime_kuma"
+db_username: "uptime_kuma"
+db_password: "{{ vault_db_password }}"
+
+prometheus_retention: "30d"

@@ -1,0 +1,13 @@
+{{- if .Page.Store.Get "hasMermaid" }}
+<!-- Mermaid Diagrams Support -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+      securityLevel: 'loose',
+    });
+  });
+</script>
+{{- end }}

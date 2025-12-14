@@ -1,0 +1,28 @@
+---
+- name: Configuration SSL Let's Encrypt
+  hosts: vps
+  become: yes
+
+  tasks:
+    - name: Installation Certbot
+      apt:
+        name:
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: Obtention certificats SSL
+      command: >
+        certbot --nginx --non-interactive --agree-tos
+        --email {{ vault_letsencrypt_email }}
+        -d wail-sys.com
+        -d status.wail-sys.com
+      args:
+        creates: /etc/letsencrypt/live/wail-sys.com/fullchain.pem
+
+    - name: Configuration renouvellement automatique
+      cron:
+        name: "Renouvellement SSL"
+        minute: "0"
+        hour: "3"
+        job: "certbot renew --quiet"

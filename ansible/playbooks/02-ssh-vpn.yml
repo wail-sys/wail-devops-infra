@@ -1,0 +1,39 @@
+---
+- name: Restriction SSH via Tailscale
+  hosts: vps
+  become: yes
+
+  tasks:
+    - name: Installation Tailscale
+      shell: curl -fsSL https://tailscale.com/install.sh | sh
+      args:
+        creates: /usr/bin/tailscale
+
+    - name: Connexion Tailscale
+      command: tailscale up --authkey={{ vault_tailscale_authkey }} --accept-routes
+      register: tailscale_up
+
+    - name: Récupération IP Tailscale
+      command: tailscale ip -4
+      register: tailscale_ip
+      changed_when: false
+
+    - name: Configuration SSH écoute Tailscale uniquement
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?ListenAddress'
+        line: "ListenAddress {{ tailscale_ip.stdout }}"
+      notify: Redémarrage SSH
+
+    - name: Restriction firewall SSH au VPN
+      ufw:
+        rule: limit
+        port: '22'
+        proto: tcp
+        from_ip: 100.64.0.0/10
+
+  handlers:
+    - name: Redémarrage SSH
+      service:
+        name: ssh
+        state: restarted
